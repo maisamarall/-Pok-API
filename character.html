@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="assents/Poké_logo.png" type="image/x-icon">
+    <title>Detalhes dos Pokémons</title>
+    <link rel="stylesheet" href="character.css">
+</head>
+<body>
+    <header>
+        <div class="image"><img src="assents/Poké_principal.png" alt="Logo Pokémon"></div>
+        <h3>Detalhes do Pokémon</h3>
+    </header>
+    <main>
+        <div class="container" id="character-details"></div>
+        <div class="pagination">
+            <button id="prev">Anterior</button>
+            <button id="next">Próximo</button>
+        </div>
+    </main>
+    <footer><img id="logo-pequena" src="assents/Poké_logo.png" alt="ball pokémon"></footer>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let characterId = parseInt(params.get("id")) || 1;
+        const container = document.getElementById("character-details");
+        const prevButton = document.getElementById("prev");
+        const nextButton = document.getElementById("next");
+
+        async function getCharacter(id) {
+            try {
+                container.innerHTML = "Carregando...";
+                const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+                if (!response.ok) {
+                    throw new Error("Personagem não encontrado");
+                }
+                const character = await response.json();
+                const types = character.types.map(type => type.type.name).join(", ");
+                const imageUrl = character.sprites.other["official-artwork"].front_default;
+                const abilities = character.abilities.map(ability => `<li>${ability.ability.name}</li>`).join("");
+                const stats = character.stats.map(stat => `<li>${stat.stat.name}: ${stat.base_stat}</li>`).join("");
+
+                container.innerHTML = `
+                    <div class="pokemon-details">
+                        <img src="${imageUrl}" alt="${character.name}">
+                        <h2>${character.name}</h2>
+                        <p><strong>Tipos:</strong> ${types}</p>
+                        <div class="info">
+                            <p><strong>Peso:</strong> ${character.weight}</p>
+                            <p><strong>Altura:</strong> ${character.height}</p>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Erro ao carregar personagem", error);
+                container.innerHTML = "Erro ao carregar personagem";
+            }
+        }
+
+        prevButton.addEventListener("click", () => {
+            if (characterId > 1) {
+                characterId--;
+                window.location.href = `character.html?id=${characterId}`;
+            }
+        });
+
+        nextButton.addEventListener("click", () => {
+            characterId++;
+            window.location.href = `character.html?id=${characterId}`;
+        });
+
+        document.addEventListener("DOMContentLoaded", () => getCharacter(characterId));
+    </script>
+</body>
+</html>

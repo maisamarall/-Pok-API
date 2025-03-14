@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="assents/Poké_logo.png" type="image/x-icon">
+    <title>Pokémons- API</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+    </style>
+</head>
+<body>
+    <img src="assents/Poké_principal.png" alt="Logo do Pokémon">
+    <div class="container" id="character-container"></div>
+
+    <div class="pagination">
+        <button id="prev">Anterior</button>
+        <button id="next">Próximo</button>
+    </div>
+
+    <script>
+        const container = document.getElementById("character-container");
+        const prevButton = document.getElementById("prev");
+        const nextButton = document.getElementById("next");
+
+        let nextUrl = "https://pokeapi.co/api/v2/pokemon/";
+        let prevUrl = null;
+
+        async function getCharacters(url) {
+            try {
+                container.innerHTML = "Carregando...";
+                const response = await fetch(url);
+                const data = await response.json();
+                container.innerHTML = "";
+                nextUrl = data.next;
+                prevUrl = data.previous;
+
+                for (const person of data.results) {
+                    const pokemonResponse = await fetch(person.url);
+                    const pokemonData = await pokemonResponse.json();
+
+                    let imageUrl = pokemonData.sprites.other["official-artwork"].front_default;
+                    if (!imageUrl) {
+                        imageUrl = pokemonData.sprites.front_default;
+                    }
+                    if (!imageUrl) {
+                        imageUrl = "URL_DA_IMAGEM_PADRÃO";
+                        console.warn(`Imagem do Pokémon não encontrada.  ${pokemonData.name} (ID: ${pokemonData.id})`);
+                    }
+
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.innerHTML = `
+                        <img src="${imageUrl}" alt="${person.name}">
+                        <p>${person.name}</p>
+                    `;
+                    card.addEventListener("click", () => {
+                        window.location.href = `character.html?id=${pokemonData.id}`;
+                    });
+                    container.appendChild(card);
+                }
+                prevButton.disabled = !prevUrl;
+                nextButton.disabled = !nextUrl;
+            } catch (error) {
+                console.error("Erro ao carregar personagens", error);
+                container.innerHTML = "Erro ao carregar personagens";
+            }
+        }
+
+        prevButton.addEventListener("click", () => {
+            if (prevUrl) {
+                getCharacters(prevUrl);
+            }
+        });
+
+        nextButton.addEventListener("click", () => {
+            if (nextUrl) {
+                getCharacters(nextUrl);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => getCharacters(nextUrl));
+    </script>
+    <footer><img id="logo-pequena" src="assents/Poké_logo.png" alt="ball Pokémons"></footer>
+</body>
+</html>
